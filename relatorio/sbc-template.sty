@@ -1,0 +1,79 @@
+%% sbc-template.sty -- SBC conference/journal template
+%% Adapted from the official SBC LaTeX template (sbc.org.br)
+
+\RequirePackage{times}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{graphicx}
+\RequirePackage{fancyhdr}
+\RequirePackage{color}
+\RequirePackage{indentfirst}
+
+% Page layout
+\topmargin       -24pt
+\headheight       12pt
+\headsep          12pt
+\oddsidemargin  -0.4cm
+\evensidemargin -0.4cm
+\textheight     23.7cm
+\textwidth      17.0cm
+\columnsep        1.0cm
+\voffset          0.0cm
+
+\flushbottom
+
+% Title and author formatting
+\newcommand{\@affiliation}{}
+\newcommand{\affiliation}[1]{\renewcommand{\@affiliation}{#1}}
+
+\let\@inst\relax
+\newcommand{\inst}[1]{\unskip$^{#1}$}
+
+\newcommand{\address}[1]{\gdef\@address{#1}}
+\gdef\@address{}
+
+\newcommand{\email}[1]{\texttt{#1}}
+
+\renewcommand{\maketitle}{%
+  \begin{center}
+    {\Large\bfseries\@title\par}
+    \vspace{0.5em}
+    {\large\@author\par}
+    \vspace{0.3em}
+    {\small\@address\par}
+  \end{center}
+  \vspace{1em}
+}
+
+% Abstract environments
+\renewenvironment{abstract}{%
+  \vspace{0.5em}
+  \noindent\textbf{Abstract.}\space\ignorespaces
+}{\par\vspace{0.5em}}
+
+\newenvironment{resumo}{%
+  \vspace{0.3em}
+  \noindent\textbf{Resumo.}\space\ignorespaces
+}{\par\vspace{1em}}
+
+% Section formatting
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-3.5ex \@plus -1ex \@minus -.2ex}%
+  {2.3ex \@plus.2ex}%
+  {\normalfont\large\bfseries}}
+
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}}
+
+% Caption formatting
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{\small\textbf{#1.} #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    \small\textbf{#1.} #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
