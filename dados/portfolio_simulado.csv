@@ -1,0 +1,9 @@
+ativo,nome,classe,quantidade,preco_atual,retorno_esperado,volatilidade,perfil_risco
+PETR4,Petrobras PN,Ação,200,38.50,0.18,0.35,alto
+VALE3,Vale ON,Ação,150,68.20,0.15,0.30,alto
+ITUB4,Itaú Unibanco PN,Ação,300,34.80,0.12,0.22,médio
+BBDC4,Bradesco PN,Ação,250,15.40,0.10,0.20,médio
+MGLU3,Magazine Luiza ON,Ação,500,9.60,0.25,0.55,alto
+TESOURO_SELIC,Tesouro Selic 2027,Renda Fixa,1,18500.00,0.1065,0.01,baixo
+HGLG11,CSHG Logística FII,Fundo Imobiliário,50,162.30,0.09,0.12,médio
+XPML11,XP Malls FII,Fundo Imobiliário,40,105.70,0.085,0.14,médio

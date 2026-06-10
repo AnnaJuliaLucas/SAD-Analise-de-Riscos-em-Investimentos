@@ -1,0 +1,318 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{hyperref}
+
+% -------------------------------------------------------
+% Metadados do artigo
+% -------------------------------------------------------
+\title{Análise de Sensibilidade Aplicada à Avaliação de Riscos\\
+       em Portfólios de Investimentos}
+
+\author{Anna Julia Lucas de Almeida\inst{1}}
+
+\address{
+  Departamento de Ciência da Computação (DCC) \\
+  Universidade Federal de Juiz de Fora (UFJF) \\
+  Juiz de Fora -- MG -- Brasil
+  \email{almeidaannajulia@gmail.com}
+}
+
+\begin{document}
+
+\maketitle
+
+% -------------------------------------------------------
+% Resumo
+% -------------------------------------------------------
+\begin{abstract}
+This paper presents a Decision Support System (DSS) for investment risk analysis
+using Sensitivity Analysis. The system simulates market fluctuation scenarios — ranging
+from -20\% to +20\% — and evaluates their impact on a portfolio composed of Brazilian
+financial assets, including stocks, fixed income, and real estate investment trusts (REITs).
+The application, developed in Python with a Streamlit interface, calculates the portfolio
+value, individual asset impact, weighted return and risk, and generates automated
+allocation recommendations. The results demonstrate that portfolios with high concentration
+in volatile assets show significant sensitivity to market downturns, reinforcing the
+importance of diversification.
+\end{abstract}
+
+\begin{resumo}
+Este artigo apresenta um Sistema de Apoio à Decisão (SAD) para análise de risco em
+investimentos por meio de Análise de Sensibilidade. O sistema simula cenários de
+oscilação de mercado — de -20\% a +20\% — e avalia o impacto sobre um portfólio
+composto por ativos financeiros brasileiros, incluindo ações, renda fixa e fundos
+imobiliários. A aplicação, desenvolvida em Python com interface Streamlit, calcula o
+valor do portfólio, o impacto individual por ativo, o retorno e o risco ponderados, e
+gera recomendações automáticas de alocação. Os resultados evidenciam que portfólios com
+alta concentração em ativos voláteis apresentam sensibilidade significativa a quedas de
+mercado, reforçando a importância da diversificação.
+\end{resumo}
+
+% -------------------------------------------------------
+% 1. Introdução
+% -------------------------------------------------------
+\section{Introdução}
+
+A gestão eficiente de um portfólio de investimentos requer ferramentas que permitam
+ao investidor antecipar os riscos associados às variações do mercado financeiro.
+Oscilações macroeconômicas, crises setoriais e movimentos especulativos podem provocar
+perdas expressivas em carteiras mal diversificadas, tornando a análise de risco um
+componente essencial na tomada de decisão \cite{markowitz1952}.
+
+Os Sistemas de Apoio à Decisão (SAD) representam uma categoria de sistemas de informação
+projetados para auxiliar tomadores de decisão em situações complexas e semiestruturadas
+\cite{power2002}. No contexto financeiro, um SAD pode integrar modelos analíticos, bases
+de dados e interfaces interativas para facilitar a compreensão do comportamento de uma
+carteira diante de diferentes cenários.
+
+A Análise de Sensibilidade é uma técnica de modelagem analítica que permite avaliar
+como variações nos parâmetros de entrada afetam os resultados de um modelo. Aplicada
+a portfólios de investimentos, ela possibilita simular cenários de alta e queda nos
+preços dos ativos e mensurar o impacto dessas variações no valor total da carteira
+\cite{saltelli2008}. Essa abordagem é classificada como análise \textit{what-if}
+estruturada, em que o analista define intervalos de variação e observa a resposta do
+modelo.
+
+O \textbf{objetivo geral} deste trabalho é desenvolver um SAD interativo para análise
+de risco de investimentos utilizando Análise de Sensibilidade. Os \textbf{objetivos
+específicos} são: (i) construir uma carteira simulada com ativos financeiros brasileiros;
+(ii) implementar a análise de sensibilidade para cenários de variação de -20\% a +20\%;
+(iii) calcular indicadores de retorno e risco do portfólio; (iv) gerar recomendações
+automáticas de alocação com base nos resultados obtidos.
+
+% -------------------------------------------------------
+% 2. Metodologia
+% -------------------------------------------------------
+\section{Metodologia}
+
+\subsection{Base de Dados Simulada}
+
+Dada a necessidade de uma solução independente de conexão à internet, foi construída
+uma base de dados sintética e realista, representando o portfólio de um investidor
+pessoa física brasileiro. O arquivo \texttt{portfolio\_simulado.csv} contém oito
+ativos com os seguintes campos: código do ativo, nome, classe, quantidade, preço atual,
+retorno esperado anual, volatilidade estimada anual e perfil de risco.
+
+\begin{table}[H]
+\centering
+\caption{Composição do Portfólio Simulado}
+\label{tab:portfolio}
+\begin{tabular}{llllrr}
+\toprule
+\textbf{Ativo} & \textbf{Classe} & \textbf{Risco} & \textbf{Ret. Esp.} & \textbf{Vol.} & \textbf{Participação} \\
+\midrule
+PETR4          & Ação            & Alto    & 18\%  & 35\% & $\approx$19\% \\
+VALE3          & Ação            & Alto    & 15\%  & 30\% & $\approx$26\% \\
+ITUB4          & Ação            & Médio   & 12\%  & 22\% & $\approx$26\% \\
+BBDC4          & Ação            & Médio   & 10\%  & 20\% & $\approx$10\% \\
+MGLU3          & Ação            & Alto    & 25\%  & 55\% & $\approx$12\% \\
+TESOURO\_SELIC & Renda Fixa      & Baixo   & 10,65\% & 1\%  & $\approx$46\% \\
+HGLG11         & FII             & Médio   & 9\%   & 12\% & $\approx$20\% \\
+XPML11         & FII             & Médio   & 8,5\% & 14\% & $\approx$11\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Os valores de volatilidade foram baseados em estimativas históricas de ativos
+equivalentes no mercado brasileiro. Os preços e retornos esperados foram calibrados para
+refletir condições de mercado plausíveis para 2026.
+
+\subsection{Cenários de Sensibilidade}
+
+Foram definidos sete cenários predefinidos, além de um controle manual via \textit{slider}
+interativo (Tabela \ref{tab:cenarios}). A escolha desses intervalos busca cobrir desde
+crises moderadas até rallies de mercado expressivos.
+
+\begin{table}[H]
+\centering
+\caption{Cenários de Análise de Sensibilidade}
+\label{tab:cenarios}
+\begin{tabular}{lr}
+\toprule
+\textbf{Cenário}      & \textbf{Variação} \\
+\midrule
+Queda Forte           & $-20\%$ \\
+Queda Moderada        & $-10\%$ \\
+Queda Leve            & $-5\%$  \\
+Neutro                & $0\%$   \\
+Alta Leve             & $+5\%$  \\
+Alta Moderada         & $+10\%$ \\
+Alta Forte            & $+20\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Modelagem Matemática}
+
+O preço simulado de cada ativo $i$ no cenário de variação $v$ é calculado como:
+
+\begin{equation}
+  P_i^{\text{sim}} = P_i^{\text{atual}} \times (1 + v \cdot \beta_i)
+  \label{eq:preco}
+\end{equation}
+
+onde $\beta_i = 1{,}0$ para ações e fundos imobiliários e $\beta_i = 0{,}05$ para
+renda fixa, refletindo a baixa correlação desses títulos com as oscilações de bolsa.
+
+O valor simulado de cada posição é:
+\begin{equation}
+  V_i^{\text{sim}} = Q_i \times P_i^{\text{sim}}
+  \label{eq:valor}
+\end{equation}
+
+O retorno do cenário é:
+\begin{equation}
+  R_{\text{cenário}} = \frac{\sum V_i^{\text{sim}} - \sum V_i^{\text{ini}}}{\sum V_i^{\text{ini}}}
+  \label{eq:retorno}
+\end{equation}
+
+O retorno esperado ponderado e o risco ponderado do portfólio são calculados como:
+\begin{equation}
+  \bar{R} = \sum_{i} w_i \cdot r_i, \quad \sigma_p = \sum_{i} w_i \cdot \sigma_i
+  \label{eq:ponderados}
+\end{equation}
+
+onde $w_i$ é a participação percentual e $r_i$ e $\sigma_i$ são o retorno esperado e
+a volatilidade do ativo $i$, respectivamente.
+
+\subsection{Implementação}
+
+O sistema foi desenvolvido em Python 3.11, utilizando as bibliotecas Pandas
+\cite{pandas2020} para manipulação de dados, NumPy para operações numéricas, Plotly
+para visualizações interativas e Streamlit para a interface web. O projeto é executado
+localmente, sem dependência de APIs externas, garantindo funcionamento completo em
+ambientes sem conexão à internet.
+
+% -------------------------------------------------------
+% 3. Resultados e Discussões
+% -------------------------------------------------------
+\section{Resultados e Discussões}
+
+\subsection{Composição e Indicadores Iniciais}
+
+O valor total do portfólio simulado é de aproximadamente R\$~63.000,00. O retorno
+esperado ponderado é de 11,2\% ao ano, e o risco médio ponderado (volatilidade) é de
+10,6\% ao ano. O Tesouro Selic representa a maior parcela individual da carteira
+($\approx$46\%), o que confere uma âncora defensiva ao portfólio.
+
+\subsection{Comportamento nos Cenários Simulados}
+
+A Tabela \ref{tab:resultados} sintetiza o impacto financeiro nos principais cenários.
+
+\begin{table}[H]
+\centering
+\caption{Impacto nos Diferentes Cenários de Mercado}
+\label{tab:resultados}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Cenário}  & \textbf{Ganho/Perda (R\$)} & \textbf{Retorno (\%)} \\
+\midrule
+Queda Forte (-20\%)   & $-$R\$ 6.800    & $-$10,8\% \\
+Queda Moderada (-10\%)& $-$R\$ 3.400    & $-$5,4\%  \\
+Queda Leve (-5\%)     & $-$R\$ 1.700    & $-$2,7\%  \\
+Neutro (0\%)          & R\$ 0           & 0,0\%     \\
+Alta Leve (+5\%)      & $+$R\$ 1.700    & $+$2,7\%  \\
+Alta Moderada (+10\%) & $+$R\$ 3.400    & $+$5,4\%  \\
+Alta Forte (+20\%)    & $+$R\$ 6.800    & $+$10,8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Observa-se uma relação aproximadamente linear entre a variação de mercado e o impacto
+no portfólio, resultado esperado da modelagem proporcional adotada. A amortização
+promovida pelo Tesouro Selic é evidente: uma queda de 20\% no mercado de renda variável
+resulta em apenas 10,8\% de perda na carteira total.
+
+\subsection{Impacto por Ativo}
+
+O ativo VALE3 apresentou o maior impacto absoluto em cenários extremos, devido à
+combinação de preço elevado e quantidade significativa na carteira. Já o MGLU3,
+embora de alta volatilidade esperada, tem menor impacto absoluto em função do seu
+preço unitário reduzido.
+
+O Tesouro Selic praticamente não sofre impacto em nenhum cenário, confirmando seu
+papel como ativo defensivo e âncora da estabilidade do portfólio.
+
+\subsection{Análise de Risco e Recomendações}
+
+Os indicadores do sistema identificaram dois aspectos relevantes:
+
+\begin{itemize}
+  \item \textbf{Concentração moderada em renda variável:} aproximadamente 54\% do
+    portfólio está alocado em ações e FIIs. Em cenários de queda moderada (-10\%),
+    a perda fica em torno de 5,4\%, o que é considerável para um perfil conservador.
+  \item \textbf{Boa diversificação entre setores:} a presença de empresas de setores
+    distintos (energia, mineração, financeiro, varejo e imobiliário) reduz o risco
+    idiossincrático.
+\end{itemize}
+
+O sistema recomenda, para o perfil simulado, manter a proporção atual de renda fixa
+e considerar a redução da exposição ao MGLU3, dado seu elevado índice de volatilidade
+(55\% a.a.).
+
+% -------------------------------------------------------
+% 4. Conclusão
+% -------------------------------------------------------
+\section{Conclusão}
+
+Este trabalho desenvolveu um Sistema de Apoio à Decisão interativo para análise de
+risco em investimentos, utilizando a Análise de Sensibilidade como metodologia central.
+O sistema permite ao investidor visualizar o comportamento do seu portfólio sob
+diferentes cenários de mercado, identificar os ativos mais sensíveis às oscilações e
+receber recomendações automáticas de alocação.
+
+Os resultados demonstram que a presença de ativos de renda fixa no portfólio atua como
+fator de estabilização, reduzindo significativamente o impacto de quedas de mercado.
+O SAD desenvolvido cumpre seu papel de apoiar a tomada de decisão ao tornar visível e
+quantificável o risco associado a diferentes composições de carteira.
+
+Como limitações, destaca-se a adoção de um modelo de risco simplificado, que não
+considera a correlação entre ativos (matriz de covariâncias). Trabalhos futuros poderão
+incorporar a Teoria Moderna de Portfólio de Markowitz \cite{markowitz1952}, simulações
+de Monte Carlo e o cálculo do Value at Risk (VaR) para uma análise mais completa e
+precisa do risco de portfólio.
+
+% -------------------------------------------------------
+% Referências
+% -------------------------------------------------------
+\bibliographystyle{sbc}
+\bibliography{referencias}
+
+\begin{thebibliography}{9}
+
+\bibitem{markowitz1952}
+MARKOWITZ, H. Portfolio selection.
+\textit{The Journal of Finance}, v. 7, n. 1, p. 77--91, 1952.
+
+\bibitem{power2002}
+POWER, D. J. Decision support systems: concepts and resources for managers.
+Westport: Quorum Books, 2002.
+
+\bibitem{saltelli2008}
+SALTELLI, A. et al. \textit{Global Sensitivity Analysis: The Primer}.
+Chichester: John Wiley \& Sons, 2008.
+
+\bibitem{damodaran2012}
+DAMODARAN, A. \textit{Investment Valuation: Tools and Techniques for Determining
+the Value of any Asset}. 3. ed. Hoboken: Wiley Finance, 2012.
+
+\bibitem{pandas2020}
+McKINNEY, W. Data structures for statistical computing in Python.
+In: \textit{Proceedings of the 9th Python in Science Conference}, 2010. p. 56--61.
+
+\bibitem{bodie2014}
+BODIE, Z.; KANE, A.; MARCUS, A. J. \textit{Investments}. 10. ed.
+New York: McGraw-Hill Education, 2014.
+
+\end{thebibliography}
+
+\end{document}
